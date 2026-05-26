@@ -3,13 +3,6 @@ const crypto = require("crypto");
 const WEBHOOK_SECRET   = "Polo1716@153";
 const FIREBASE_PROJECT = "momentum-trackerapp";
 
-const PLAN_MAP = {
-  "pro_monthly":   { plan: "pro",  days: 31  },
-  "pro_yearly":    { plan: "pro",  days: 366 },
-  "plus_monthly":  { plan: "plus", days: 31  },
-  "plus_yearly":   { plan: "plus", days: 366 },
-};
-
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -25,81 +18,86 @@ module.exports = async function handler(req, res) {
 
     const event = JSON.parse(rawBody.toString());
     console.log("✅ Event:", event.event);
-    if (event.event !== "payment.captured") return res.status(200).json({ message: "Ignored" });
+    if (event.event !== "payment.captured") return res.status(200).json({ message: "Ignored: " + event.event });
 
     const payment = event.payload.payment.entity;
-    const amount  = payment.amount;
-    const notes   = payment.notes || {};
+    const amount  = payment.amount; // paise
+    const notes   = payment.notes  || {};
 
-    // Get email and UID from notes (set by app via payLink function)
-    const emailFromNotes = (notes.email || "").toLowerCase().trim();
+    // Payment Pages send email in notes (set by payLink function in app)
+    const emailFromNotes   = (notes.email   || "").toLowerCase().trim();
     const emailFromPayment = (payment.email || "").toLowerCase().trim();
-    const uid = (notes.uid || "").trim();
-    const planFromNotes = (notes.plan || "").toLowerCase().trim();
+    const uid   = (notes.uid   || "").trim();
+    const planNote = (notes.plan || "").toLowerCase().trim();
 
-    // Use notes email first, fallback to payment email
-    const email = emailFromNotes && emailFromNotes !== "void@razorpay.com"
+    // Use notes email first (most reliable — set by app), fallback to payment email
+    const email = (emailFromNotes && emailFromNotes !== "void@razorpay.com")
       ? emailFromNotes
       : emailFromPayment;
 
-    console.log("Email:", email, "| UID:", uid, "| Plan note:", planFromNotes);
-    console.log("Amount:", amount, "paise");
+    console.log("Email:", email, "| UID:", uid, "| Plan:", planNote, "| Amount:", amount);
 
-    const { plan, days } = detectPlan(planFromNotes, amount);
-    console.log("Plan:", plan, days, "days");
+    const { plan, days } = detectPlan(planNote, amount);
+    console.log("Detected plan:", plan, days, "days");
 
     const token = await getFirebaseToken();
 
-    // Try finding user by UID first (most reliable), then email
-    let userDoc = null;
-    let uid_used = null;
+    // Find user — try UID first (fastest), then email
+    let userUID = null;
 
-    if (uid && uid.length > 5) {
-      userDoc = await getUserByUID(token, uid);
-      if (userDoc) uid_used = uid;
+    if (uid && uid.length > 4) {
+      const doc = await getUserByUID(token, uid);
+      if (doc) { userUID = uid; console.log("✅ Found by UID:", uid); }
     }
 
-    if (!userDoc && email && email !== "void@razorpay.com") {
-      userDoc = await findUserByEmail(token, email);
-      if (userDoc) uid_used = userDoc.name.split("/").pop();
+    if (!userUID && email && email !== "void@razorpay.com") {
+      const doc = await findUserByEmail(token, email);
+      if (doc) { userUID = doc.name.split("/").pop(); console.log("✅ Found by email:", email); }
     }
 
-    if (!userDoc) {
+    if (!userUID) {
       console.error("❌ User not found. Email:", email, "UID:", uid);
       await logFailedPayment(token, email, uid, plan, days, amount);
-      return res.status(200).json({ message: "User not found — logged" });
+      return res.status(200).json({ message: "User not found — logged for manual review" });
     }
 
-    console.log("✅ User found:", uid_used);
-    await upgradePlan(token, uid_used, plan, days);
-    console.log("✅ Upgraded:", uid_used, "→", plan, days, "days");
+    await upgradePlan(token, userUID, plan, days);
+    console.log("✅ Upgraded:", userUID, "→", plan, days, "days");
 
-    return res.status(200).json({ success: true, uid: uid_used, plan, days });
+    return res.status(200).json({ success: true, uid: userUID, plan, days });
 
   } catch (err) {
-    console.error("❌ Error:", err.message);
+    console.error("❌ Webhook error:", err.message, err.stack);
     return res.status(500).json({ error: "Internal error" });
   }
 };
 
+// ── PLAN DETECTION ─────────────────────────────────────────────
 function detectPlan(planNote, amount) {
-  // Priority 1: plan name from notes
-  if (PLAN_MAP[planNote]) return PLAN_MAP[planNote];
+  // Priority 1: plan name from notes (set by app payLink function)
+  const MAP = {
+    "pro_monthly":  { plan:"pro",  days:31  },
+    "pro_yearly":   { plan:"pro",  days:366 },
+    "plus_monthly": { plan:"plus", days:31  },
+    "plus_yearly":  { plan:"plus", days:366 },
+  };
+  if (MAP[planNote]) return MAP[planNote];
 
-  // Priority 2: amount in paise
-  if (amount === 7900)   return { plan:"pro",  days:31  };
-  if (amount === 69900)  return { plan:"pro",  days:366 };
-  if (amount === 14900)  return { plan:"plus", days:31  };
-  if (amount === 149900) return { plan:"plus", days:366 };
+  // Priority 2: exact amount in paise
+  if (amount === 7900)   return { plan:"pro",  days:31  }; // ₹79
+  if (amount === 69900)  return { plan:"pro",  days:366 }; // ₹699
+  if (amount === 14900)  return { plan:"plus", days:31  }; // ₹149
+  if (amount === 149900) return { plan:"plus", days:366 }; // ₹1499
 
-  console.log("⚠️ Unknown plan — defaulting Pro monthly");
+  console.log("⚠️ Unknown plan/amount — defaulting to Pro monthly");
   return { plan:"pro", days:31 };
 }
 
+// ── FIREBASE TOKEN ─────────────────────────────────────────────
 async function getFirebaseToken() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey  = (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
-  if (!clientEmail || !privateKey) throw new Error("Missing Firebase env vars");
+  if (!clientEmail || !privateKey) throw new Error("Missing FIREBASE_CLIENT_EMAIL or FIREBASE_PRIVATE_KEY");
 
   const now = Math.floor(Date.now() / 1000);
   const payload = {
@@ -109,8 +107,8 @@ async function getFirebaseToken() {
     scope: "https://www.googleapis.com/auth/datastore"
   };
 
-  const header = Buffer.from(JSON.stringify({ alg:"RS256", typ:"JWT" })).toString("base64url");
-  const body   = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const header  = Buffer.from(JSON.stringify({ alg:"RS256", typ:"JWT" })).toString("base64url");
+  const body    = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const unsigned = `${header}.${body}`;
   const sign = crypto.createSign("RSA-SHA256");
   sign.update(unsigned);
@@ -122,16 +120,16 @@ async function getFirebaseToken() {
     body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
   });
   const data = await resp.json();
-  if (!data.access_token) throw new Error("Token failed: " + JSON.stringify(data));
+  if (!data.access_token) throw new Error("Token exchange failed: " + JSON.stringify(data));
   return data.access_token;
 }
 
+// ── FIRESTORE HELPERS ──────────────────────────────────────────
 async function getUserByUID(token, uid) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/users/${uid}`;
   const resp = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   const doc = await resp.json();
-  if (doc.name) return doc;
-  return null;
+  return doc.name ? doc : null;
 }
 
 async function findUserByEmail(token, email) {
@@ -148,8 +146,7 @@ async function findUserByEmail(token, email) {
     })
   });
   const results = await resp.json();
-  if (results && results[0] && results[0].document) return results[0].document;
-  return null;
+  return (results && results[0] && results[0].document) ? results[0].document : null;
 }
 
 async function upgradePlan(token, uid, plan, days) {
@@ -166,27 +163,35 @@ async function upgradePlan(token, uid, plan, days) {
   await fetch(url + "?updateMask.fieldPaths=plan&updateMask.fieldPaths=planExpiry", {
     method: "PATCH",
     headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: { plan: { stringValue: plan }, planExpiry: { stringValue: newExpiry } } })
+    body: JSON.stringify({
+      fields: {
+        plan:       { stringValue: plan },
+        planExpiry: { stringValue: newExpiry }
+      }
+    })
   });
-  console.log("Plan:", plan, "until", newExpiry);
+  console.log("Plan updated:", plan, "until", newExpiry);
 }
 
 async function logFailedPayment(token, email, uid, plan, days, amount) {
   await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/payment_issues`, {
     method: "POST",
     headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: {
-      email: { stringValue: email||"" },
-      uid:   { stringValue: uid||"" },
-      plan:  { stringValue: plan },
-      days:  { integerValue: days },
-      amount:{ integerValue: amount },
-      timestamp: { stringValue: new Date().toISOString() },
-      resolved:  { booleanValue: false }
-    }})
+    body: JSON.stringify({
+      fields: {
+        email:     { stringValue: email||"" },
+        uid:       { stringValue: uid||"" },
+        plan:      { stringValue: plan },
+        days:      { integerValue: days },
+        amount:    { integerValue: amount },
+        timestamp: { stringValue: new Date().toISOString() },
+        resolved:  { booleanValue: false }
+      }
+    })
   });
 }
 
+// ── RAW BODY ───────────────────────────────────────────────────
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -194,4 +199,4 @@ function getRawBody(req) {
     req.on("end",  () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
-}
+                                 }
