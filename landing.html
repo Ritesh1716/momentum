@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Momentum — Build Habits. Crush Goals. Get AI Coached.</title>
+<meta name="description" content="The habit tracker that actually works. Track habits, crush goals with action plans, get AI coaching, streak badges, heatmaps and more. Free to start."/>
+<meta property="og:title" content="Momentum — Build Habits. Crush Goals."/>
+<meta property="og:description" content="AI-powered habit tracker with goals, streaks, heatmaps and smart coaching. Free forever."/>
+<meta property="og:url" content="https://momentum-tracker-v01.vercel.app"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+/* Fallback: if Google Fonts fails (local file / offline), use system fonts */
+@font-face{font-family:'Sora';font-style:normal;font-weight:400;src:local('Segoe UI'),local('Helvetica Neue'),local('Arial');}
+</style>
+<style>
+:root{--bg:#07070f;--card:#0f0f1a;--surface:#13131f;--border:#1e1e30;--text:#f0eff4;--muted:#8a8aa8;--accent:#f5c842;--accent2:#e8853d;--green:#4ade80;--blue:#60a5fa;--purple:#a78bfa;--red:#f87171;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(245,200,66,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(245,200,66,0.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,7,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;color:var(--accent);}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{padding:7px 13px;border:none;border-radius:20px;background:none;color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.nav-link:hover{color:var(--accent);}
+.btn-nav{padding:8px 16px;border:none;border-radius:20px;background:var(--accent);color:#000;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;}
+section{position:relative;z-index:1;}
+
+/* HERO */
+.hero{padding:88px 20px 40px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;}
+.hero-glow{position:absolute;width:min(600px,100vw);height:min(400px,60vw);background:radial-gradient(circle,rgba(245,200,66,0.07) 0%,transparent 70%);top:40%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.hero-title{font-size:clamp(38px,8vw,82px);font-weight:900;letter-spacing:-2px;line-height:0.95;margin-bottom:16px;}
+.line1{display:block;color:var(--text);}
+.line2{display:block;color:var(--accent);}
+.line3{display:block;color:var(--muted);font-size:clamp(22px,4.5vw,48px);font-weight:700;}
+.hero-sub{font-size:clamp(13px,2vw,16px);color:var(--muted);max-width:480px;line-height:1.75;margin-bottom:28px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;border:none;background:var(--accent);color:#000;font-family:'Sora',sans-serif;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;transition:all 0.2s;box-shadow:0 0 40px rgba(245,200,66,0.25);}
+.btn-primary:hover{background:#ffd54f;transform:translateY(-2px);}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text);font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.hero-stats{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;}
+.stat{text-align:center;}
+.stat-num{font-size:clamp(18px,3.5vw,26px);font-weight:900;color:var(--accent);}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* PHONE MOCK */
+.mock-section{padding:24px 20px 48px;display:flex;justify-content:center;position:relative;z-index:1;}
+.mock-phone{width:min(310px,86vw);background:var(--card);border:1px solid var(--border);border-radius:28px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(245,200,66,0.08);animation:float 4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.mock-top-bar{display:flex;justify-content:space-around;background:rgba(0,0,0,0.25);border-bottom:1px solid var(--border);padding:5px 8px;}
+.mock-top-icon{display:flex;align-items:center;justify-content:center;width:36px;height:28px;}
+.mock-top-icon span{font-size:16px;}
+.mock-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mock-logo{font-size:12px;font-weight:800;color:var(--accent);}
+.mock-body{padding:10px 12px;}
+.mock-greeting{font-size:14px;font-weight:800;margin-bottom:1px;}
+.mock-date{font-size:9px;color:var(--muted);margin-bottom:8px;}
+.mock-boxes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;}
+.mock-box{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:6px 5px;text-align:center;}
+.mock-box-v{font-size:13px;font-weight:800;color:var(--accent);}
+.mock-box-l{font-size:6.5px;color:var(--muted);text-transform:uppercase;margin-top:1px;}
+.mock-progress-wrap{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px;}
+.mock-progress-title{font-size:9px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;}
+.mock-rings{display:flex;justify-content:space-around;}
+.mock-ring{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ring-lbl{font-size:7px;color:var(--muted);text-align:center;}
+.mock-section-title{font-size:9px;font-weight:700;margin-bottom:5px;color:var(--text);}
+.mock-habits{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.mock-habit{display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:7px;font-size:9px;}
+.mock-check{width:13px;height:13px;border-radius:3px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:7px;color:#000;font-weight:900;flex-shrink:0;}
+.mock-check.empty{background:transparent;border:1.5px solid var(--border);}
+.mock-streak{margin-left:auto;font-size:8px;color:var(--accent);font-weight:700;}
+.mock-goal{padding:6px 8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:7px;font-size:8px;margin-bottom:4px;}
+.mock-goal-title{font-weight:700;color:var(--purple);margin-bottom:2px;}
+.mock-goal-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.mock-goal-fill{height:100%;background:var(--purple);border-radius:3px;}
+.mock-nav{display:flex;justify-content:space-around;padding:6px 0 4px;border-top:1px solid var(--border);}
+.mock-nav-item{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6.5px;color:var(--muted);}
+.mock-nav-item.active{color:var(--accent);}
+.mock-nav-item span{font-size:13px;}
+.mock-active-dot{width:3px;height:3px;border-radius:50%;background:var(--accent);margin-top:1px;}
+
+/* SECTION WRAP */
+.section-wrap{padding:52px 20px;max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.section-label{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
+.section-title{font-size:clamp(24px,4vw,40px);font-weight:900;letter-spacing:-1.5px;line-height:1.05;margin-bottom:10px;}
+.section-sub{font-size:13px;color:var(--muted);max-width:500px;line-height:1.75;margin-bottom:28px;}
+
+/* COLLAPSE TOGGLE */
+.collapse-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:30px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.collapse-btn:hover{border-color:var(--accent);color:var(--accent);}
+.collapse-content{overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;max-height:0;opacity:0;}
+.collapse-content.open{max-height:5000px;opacity:1;}
+.chevron{display:inline-block;transition:transform 0.3s;}
+.open-state .chevron{transform:rotate(180deg);}
+
+/* FEATURES GRID */
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;transition:all 0.3s;position:relative;}
+.feat-card:hover{border-color:rgba(245,200,66,0.3);transform:translateY(-2px);}
+.feat-card.ai-center{grid-column:1/-1;max-width:340px;margin:0 auto;width:100%;}
+.feat-icon{font-size:24px;margin-bottom:8px;}
+.feat-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.feat-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+.feat-tag{display:inline-block;margin-top:8px;font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.tag-free{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2);}
+.tag-pro{background:rgba(245,200,66,0.1);color:var(--accent);border:1px solid rgba(245,200,66,0.2);}
+.tag-plus{background:rgba(167,139,250,0.1);color:var(--purple);border:1px solid rgba(167,139,250,0.2);}
+
+/* AI SECTION */
+.ai-features{display:flex;flex-direction:column;gap:12px;margin-top:16px;}
+.ai-feat-card{background:var(--card);border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:16px;}
+.ai-feat-title{font-size:13px;font-weight:800;color:var(--purple);margin-bottom:4px;}
+.ai-feat-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+.ai-credits-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px;}
+
+/* BADGES */
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;}
+.badge-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;transition:all 0.3s;}
+.badge-card:hover{transform:translateY(-2px);}
+.badge-emoji{font-size:26px;margin-bottom:5px;}
+.badge-name{font-size:10px;font-weight:700;color:var(--text);}
+.badge-days{font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;}
+.step{display:flex;gap:18px;padding:20px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-num{width:40px;height:40px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--accent);flex-shrink:0;background:rgba(245,200,66,0.05);}
+.step-title{font-size:15px;font-weight:800;margin-bottom:5px;}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.7;}
+
+/* INSTALL */
+.install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:20px;}
+.install-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;}
+.install-icon{font-size:26px;margin-bottom:8px;}
+.install-title{font-size:13px;font-weight:700;margin-bottom:12px;}
+.install-steps{display:flex;flex-direction:column;gap:8px;}
+.install-step{display:flex;gap:8px;align-items:flex-start;}
+.step-badge{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#000;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-text{font-size:11px;color:var(--muted);line-height:1.5;}
+.step-text strong{color:var(--text);}
+
+/* PRICING */
+.pricing-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:36px;}
+.price-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:26px;position:relative;overflow:hidden;text-align:left;}
+.price-card.popular{border-color:rgba(245,200,66,0.5);background:linear-gradient(135deg,rgba(245,200,66,0.06),rgba(232,133,61,0.03));}
+.price-card.plus-card{border-color:rgba(167,139,250,0.4);background:linear-gradient(135deg,rgba(167,139,250,0.06),rgba(96,165,250,0.02));}
+.popular-badge{position:absolute;top:14px;right:14px;background:var(--accent);color:#000;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;}
+.plus-badge-tag{position:absolute;top:14px;right:14px;background:var(--purple);color:#fff;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;}
+.price-name{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.price-amount{font-size:40px;font-weight:900;letter-spacing:-2px;color:var(--text);margin-bottom:3px;}
+.price-amount span{font-size:14px;font-weight:400;color:var(--muted);}
+.price-period{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.price-save{display:inline-block;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;margin-bottom:18px;}
+.save-green{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:var(--green);}
+.save-purple{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);color:var(--purple);}
+.price-features{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
+.price-feat{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.4;}
+.price-feat.locked{color:var(--muted);}
+.btn-free{display:block;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s;}
+.btn-free:hover{border-color:var(--accent);color:var(--accent);}
+.btn-pro{display:block;width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);color:#000;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s;box-shadow:0 0 24px rgba(245,200,66,0.25);margin-bottom:8px;}
+.btn-pro:hover{background:#ffd54f;transform:translateY(-1px);}
+.btn-pro-annual{display:block;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:var(--accent);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;}
+.btn-plus{display:block;width:100%;padding:12px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s;box-shadow:0 0 24px rgba(167,139,250,0.25);margin-bottom:8px;}
+.btn-plus:hover{background:#b99ffc;transform:translateY(-1px);}
+.btn-plus-annual{display:block;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);color:var(--purple);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;}
+.compare-note{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-top:22px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8;}
+.compare-note .hl{color:var(--accent);font-weight:800;}
+.compare-note .hl-ref{color:var(--green);font-weight:800;}
+
+/* REFERRAL */
+.referral-box{background:linear-gradient(135deg,rgba(74,222,128,0.06),rgba(96,165,250,0.04));border:1px solid rgba(74,222,128,0.2);border-radius:22px;padding:32px 24px;text-align:center;max-width:600px;margin:0 auto;}
+.referral-tiers{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+.referral-tier{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;min-width:90px;}
+.referral-tier-num{font-size:20px;font-weight:900;color:var(--green);}
+.referral-tier-lbl{font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* REVIEWS */
+.reviews-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px;}
+.review-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.25s;position:relative;}
+.review-box:hover{border-color:rgba(245,200,66,0.3);transform:translateY(-2px);}
+.review-stars{color:var(--accent);font-size:12px;letter-spacing:2px;margin-bottom:8px;}
+.review-name{font-size:13px;font-weight:700;color:var(--text);}
+.review-role{font-size:10px;color:var(--muted);}
+.review-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#000;flex-shrink:0;}
+.review-tap-hint{font-size:9px;color:var(--muted);margin-top:8px;opacity:0.7;}
+.view-more-box{background:rgba(245,200,66,0.05);border:1px dashed rgba(245,200,66,0.3);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;}
+.view-more-box:hover{background:rgba(245,200,66,0.1);border-color:var(--accent);}
+
+/* POPUP */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.popup-overlay.show{opacity:1;pointer-events:all;}
+.popup-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;max-width:480px;width:100%;position:relative;transform:translateY(20px);transition:transform 0.25s;}
+.popup-overlay.show .popup-card{transform:translateY(0);}
+.popup-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.06);border:none;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* FULL REVIEWS LIST */
+.full-reviews{display:none;flex-direction:column;gap:16px;margin-top:24px;}
+.full-reviews.show{display:flex;}
+.social-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.social-stars{color:var(--accent);font-size:13px;margin-bottom:9px;letter-spacing:2px;}
+.social-text{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;font-style:italic;}
+.social-author{display:flex;align-items:center;gap:9px;}
+.social-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#000;flex-shrink:0;}
+.social-name{font-size:12px;font-weight:700;color:var(--text);}
+.social-role{font-size:10px;color:var(--muted);}
+
+/* CTA */
+.cta-box{max-width:560px;margin:0 auto;background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(232,133,61,0.04));border:1px solid rgba(245,200,66,0.2);border-radius:28px;padding:48px 28px;text-align:center;}
+.cta-title{font-size:clamp(22px,4vw,38px);font-weight:900;letter-spacing:-1.5px;margin-bottom:10px;}
+.cta-sub{font-size:14px;color:var(--muted);margin-bottom:26px;line-height:1.7;}
+.cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+footer{padding:26px 20px;border-top:1px solid var(--border);text-align:center;position:relative;z-index:1;}
+.footer-logo{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:4px;}
+.footer-text{font-size:11px;color:var(--muted);}
+.footer-links{display:flex;gap:14px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.footer-links a{font-size:11px;color:var(--muted);text-decoration:none;}
+.footer-links a:hover{color:var(--accent);}
+
+.fade-up{opacity:1;transform:translateY(0);transition:opacity 0.6s ease,transform 0.6s ease;}
+.fade-up.animate{opacity:0;transform:translateY(20px);}
+.fade-up.animate.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:768px){
+  nav .nav-link{display:none;}
+  .hero-btns,.cta-btns{flex-direction:column;align-items:center;}
+  .btn-primary,.btn-secondary{width:100%;max-width:290px;justify-content:center;}
+  .section-wrap{padding:40px 16px;}
+  .cta-box{padding:32px 16px;}
+  .hero{padding:80px 16px 32px;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .hero-stats{gap:16px;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .pricing-cards{grid-template-columns:1fr;}
+  .install-grid{grid-template-columns:1fr;}
+  .reviews-grid{grid-template-columns:1fr 1fr;}
+  .badges-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(min-width:900px){
+  .features-grid{grid-template-columns:1fr 1fr 1fr;}
+  .feat-card.ai-center{grid-column:auto;max-width:none;}
+  .ai-layout{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span>⚡</span> Momentum</div>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#ai-coach" class="nav-link">AI Coach</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <button class="btn-nav" onclick="openSharePanel()" style="background:rgba(255,255,255,0.07);color:var(--text);border:1px solid var(--border);margin-right:6px;">🔗 Share</button>
+    <a href="https://momentum-tracker-v01.vercel.app" class="btn-nav" target="_blank">Open App →</a>
+  </div>
+</nav>
+
+<!-- SHARE PANEL -->
+<div id="sharePanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:300;align-items:flex-end;justify-content:center;" onclick="closeSharePanel(event)">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:22px 22px 0 0;padding:28px 24px 36px;width:100%;max-width:520px;position:relative;">
+    <button onclick="closeSharePanelDirect()" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.06);border:none;color:var(--muted);font-size:16px;cursor:pointer;">✕</button>
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:6px;text-align:center;">Share Momentum ⚡</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:22px;">Help a friend build better habits</div>
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <span style="font-size:12px;color:var(--muted);word-break:break-all;">https://momentum-tracker-v01.vercel.app</span>
+      <button onclick="copyLandingLink()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-left:10px;" id="copyLandingBtn">Copy</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <a href="https://wa.me/?text=Check%20out%20Momentum%20-%20the%20habit%20tracker%20that%20actually%20works!%20Track%20habits%2C%20crush%20goals%20with%20AI%20coaching.%20Free%20to%20start%20%E2%9A%A1%20https%3A%2F%2Fmomentum-tracker-v01.vercel.app" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.25);border-radius:12px;color:#25d366;font-size:12px;font-weight:700;text-decoration:none;">📱 WhatsApp</a>
+      <a href="https://twitter.com/intent/tweet?text=I%27ve%20been%20building%20habits%20with%20Momentum%20-%20a%20clean%2C%20powerful%20habit%20tracker%20with%20AI%20coaching%20%26%20streak%20gamification.%20Try%20it%20free%20%E2%9A%A1&url=https%3A%2F%2Fmomentum-tracker-v01.vercel.app" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.25);border-radius:12px;color:#1da1f2;font-size:12px;font-weight:700;text-decoration:none;">𝕏 Twitter</a>
+      <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fmomentum-tracker-v01.vercel.app&title=Momentum%20Habit%20Tracker&summary=AI-powered%20habit%20tracker%20with%20goals%2C%20streaks%2C%20and%20smart%20coaching" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(10,102,194,0.1);border:1px solid rgba(10,102,194,0.25);border-radius:12px;color:#0a66c2;font-size:12px;font-weight:700;text-decoration:none;">💼 LinkedIn</a>
+      <button onclick="nativeShare()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.25);border-radius:12px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;">⚡ More Options</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <h1 class="hero-title fade-up">
+    <span class="line1">BUILD HABITS.</span>
+    <span class="line2">CRUSH GOALS.</span>
+    <span class="line3">Build Momentum.</span>
+  </h1>
+  <p class="hero-sub fade-up">The all-in-one habit tracker with goals, AI coaching, streak gamification, and smart analytics. Start free. Upgrade when you're ready.</p>
+  <div class="hero-btns fade-up">
+    <a href="https://momentum-tracker-v01.vercel.app" class="btn-primary" target="_blank">⚡ Start Free — No Card</a>
+    <a href="#pricing" class="btn-secondary">💎 See All Plans</a>
+  </div>
+  <div class="hero-stats fade-up">
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Free to Start</div></div>
+    <div class="stat"><div class="stat-num">14</div><div class="stat-lbl">Streak Badges</div></div>
+    <div class="stat"><div class="stat-num">☁️</div><div class="stat-lbl">Cloud Synced</div></div>
+    <div class="stat"><div class="stat-num">7</div><div class="stat-lbl">Themes</div></div>
+  </div>
+  <!-- STREAK CHALLENGE BANNER -->
+  <div class="fade-up" style="margin-top:24px;background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(232,133,61,0.06));border:1px solid rgba(245,200,66,0.3);border-radius:16px;padding:14px 20px;max-width:420px;text-align:center;">
+    <div style="font-size:22px;margin-bottom:4px;">🔥</div>
+    <div style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:4px;">7-Day Streak Challenge</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;">Complete a 7-day habit streak and earn <strong style="color:var(--text);">14 days Pro free</strong>. Build the habit, earn the reward.</div>
+    <a href="#challenge" style="display:inline-block;margin-top:10px;font-size:11px;font-weight:700;color:var(--accent);text-decoration:none;">Learn more →</a>
+  </div>
+</section>
+
+<!-- PHONE MOCK -->
+<div class="mock-section">
+  <div class="mock-phone fade-up">
+    <!-- HEADER — dark bg, thin yellow top border, text in white/accent -->
+    <div style="background:var(--card);border-top:3px solid var(--accent);padding:10px 14px;display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:900;color:var(--text);">Good Morning 👋</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px;">User · Thu, May 28</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+        <div style="font-size:11px;font-weight:900;color:var(--accent);">⚡ Momentum</div>
+        <div style="font-size:8px;background:rgba(245,200,66,0.15);color:var(--accent);padding:2px 8px;border-radius:8px;font-weight:800;">⚡ Pro</div>
+      </div>
+    </div>
+    <div class="mock-body">
+      <!-- Top 3 boxes -->
+      <div class="mock-boxes">
+        <div class="mock-box"><div class="mock-box-v">🔥 2d</div><div class="mock-box-l">Best Streak</div></div>
+        <div class="mock-box"><div class="mock-box-v" style="font-size:11px;color:var(--muted);">No badge yet<br/><span style="font-size:6px;">Streak 3d to start</span></div></div>
+        <div class="mock-box" style="border-color:rgba(248,113,113,0.4);"><div style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;margin-bottom:2px;"></div><div class="mock-box-v" style="font-size:9px;color:var(--red);">Updates</div><div class="mock-box-l">tap to view</div></div>
+      </div>
+      <!-- Today's Progress -->
+      <div class="mock-progress-wrap">
+        <div class="mock-progress-title"><span>Today's Progress</span><span style="color:var(--muted);font-size:7px;">Thursday</span></div>
+        <div class="mock-rings">
+          <div class="mock-ring">
+            <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="16" fill="none" stroke="#1e1e30" stroke-width="4"/><circle cx="21" cy="21" r="16" fill="none" stroke="#f5c842" stroke-width="4" stroke-dasharray="100" stroke-dashoffset="25" transform="rotate(-90 21 21)" stroke-linecap="round"/><text x="21" y="25" text-anchor="middle" font-size="8" font-weight="800" fill="#f5c842">75%</text></svg>
+            <div class="ring-lbl">Today's Habits<br/><span style="color:var(--accent);">3/4</span></div>
+          </div>
+          <div style="width:1px;background:var(--border);margin:6px 0;"></div>
+          <div class="mock-ring">
+            <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="16" fill="none" stroke="#1e1e30" stroke-width="4"/><circle cx="21" cy="21" r="16" fill="none" stroke="#60a5fa" stroke-width="4" stroke-dasharray="100" stroke-dashoffset="50" transform="rotate(-90 21 21)" stroke-linecap="round"/><text x="21" y="25" text-anchor="middle" font-size="8" font-weight="800" fill="#60a5fa">50%</text></svg>
+            <div class="ring-lbl">Today's Actions<br/><span style="color:var(--blue);">1/2</span></div>
+          </div>
+          <div style="width:1px;background:var(--border);margin:6px 0;"></div>
+          <div class="mock-ring">
+            <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="16" fill="none" stroke="#1e1e30" stroke-width="4"/><circle cx="21" cy="21" r="16" fill="none" stroke="#4ade80" stroke-width="4" stroke-dasharray="100" stroke-dashoffset="34" transform="rotate(-90 21 21)" stroke-linecap="round"/><text x="21" y="25" text-anchor="middle" font-size="8" font-weight="800" fill="#4ade80">66%</text></svg>
+            <div class="ring-lbl">Goals Progress<br/><span style="color:var(--green);">2/3</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Quick Check-in -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <div class="mock-section-title" style="margin-bottom:0;">Quick Check-in</div>
+        <div style="font-size:7px;color:var(--accent);">All Habits →</div>
+      </div>
+      <div class="mock-habits">
+        <div class="mock-habit" style="background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.2);"><div class="mock-check">✓</div><div><div style="font-weight:700;color:var(--green);">💧 Water Intake</div><div style="font-size:7px;color:var(--muted);">5/10 Glasses</div></div><span class="mock-streak">🔥2</span></div>
+        <div class="mock-habit"><div class="mock-check empty"></div><div><div>🏃 Morning Run</div><div style="font-size:7px;color:var(--muted);">0/1 Sessions</div></div><span class="mock-streak" style="color:var(--muted);">🔥1</span></div>
+        <div class="mock-habit"><div class="mock-check">✓</div><div><div>📚 Read 20 Pages</div><div style="font-size:7px;color:var(--muted);">20/20 Pages</div></div><span class="mock-streak">🔥5</span></div>
+      </div>
+      <!-- Goals -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <div class="mock-section-title" style="margin-bottom:0;color:var(--red);">🔴 High Priority Goals</div>
+        <div style="font-size:7px;color:var(--accent);">All Goals →</div>
+      </div>
+      <div class="mock-goal"><div class="mock-goal-title">Learn Python — 60d plan</div><div style="display:flex;justify-content:space-between;font-size:7px;color:var(--muted);margin-bottom:3px;"><span>3/8 actions done</span><span style="color:var(--accent);">37%</span></div><div class="mock-goal-bar"><div class="mock-goal-fill" style="width:37%;"></div></div></div>
+      <div class="mock-goal"><div class="mock-goal-title">English Communication</div><div style="display:flex;justify-content:space-between;font-size:7px;color:var(--muted);margin-bottom:3px;"><span>1/8 actions done</span><span style="color:var(--accent);">13%</span></div><div class="mock-goal-bar"><div class="mock-goal-fill" style="width:13%;"></div></div></div>
+    </div>
+    <!-- BOTTOM NAV — two rows like real app -->
+    <div style="border-top:1px solid var(--border);background:var(--card);">
+      <!-- Top row: secondary icons -->
+      <div style="display:flex;justify-content:space-around;padding:5px 0 3px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="display:flex;flex-direction:column;align-items:center;font-size:14px;color:var(--muted);min-width:40px;">⏱️</div>
+        <div style="display:flex;flex-direction:column;align-items:center;font-size:14px;color:var(--muted);min-width:40px;">📅</div>
+        <div style="display:flex;flex-direction:column;align-items:center;font-size:14px;color:var(--muted);min-width:40px;">📓</div>
+        <div style="display:flex;flex-direction:column;align-items:center;font-size:14px;color:var(--muted);min-width:40px;">🤖</div>
+        <div style="display:flex;flex-direction:column;align-items:center;font-size:14px;color:var(--muted);min-width:40px;">🔔</div>
+      </div>
+      <!-- Bottom row: main nav -->
+      <div style="display:flex;justify-content:space-around;padding:5px 0 6px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:40px;">
+          <span style="font-size:14px;">⚡</span>
+          <span style="font-size:6.5px;font-weight:700;color:var(--accent);">Dashboard</span>
+          <div style="width:3px;height:3px;border-radius:50%;background:var(--accent);"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:40px;">
+          <span style="font-size:14px;">🔥</span>
+          <span style="font-size:6.5px;color:var(--muted);">Habits</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:40px;">
+          <span style="font-size:14px;">🎯</span>
+          <span style="font-size:6.5px;color:var(--muted);">Goals</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:40px;">
+          <span style="font-size:14px;">📊</span>
+          <span style="font-size:6.5px;color:var(--muted);">Analytics</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:40px;">
+          <span style="font-size:14px;">⚙️</span>
+          <span style="font-size:6.5px;color:var(--muted);">Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section-wrap" id="features">
+  <div class="fade-up">
+    <div class="section-label">Everything You Need</div>
+    <h2 class="section-title">Built for people who<br/>actually want to change</h2>
+    <p class="section-sub">Not just a checklist. A full productivity system with habits, goals, AI coaching, analytics, and gamification — all in one app.</p>
+    <button class="collapse-btn" id="featBtn" onclick="toggleSection('featContent','featBtn')">
+      <span>Explore Features</span> <span class="chevron">▼</span>
+    </button>
+  </div>
+  <div class="collapse-content" id="featContent">
+    <div style="height:20px;"></div>
+    <div class="features-grid">
+      <div class="feat-card fade-up"><div class="feat-icon">🔥</div><div class="feat-title">Smart Habit Tracking</div><div class="feat-desc">Track habits with daily counts, streak calendar, category filters, and 90-day heatmaps. Supports count-based goals like "8 glasses of water".</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🎯</div><div class="feat-title">Goals with Action Plans</div><div class="feat-desc">Create goals with priority, deadline, notes and detailed action steps — each with its own due date and expected result. Track progress daily.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📊</div><div class="feat-title">Deep Analytics</div><div class="feat-desc">Review & Analysis unlocks progressively: Day + Week (Free) · + Month (Pro) · + Year (Plus). Includes mood charts, streak leaderboard, habit completion bars, and Pomodoro focus analytics.</div><span class="feat-tag tag-free">ALL TIERS</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">⏱️</div><div class="feat-title">Pomodoro Timer</div><div class="feat-desc">Focus timer with custom durations, session labels, history and weekly analytics. Stay in flow and track your total focus time daily.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📅</div><div class="feat-title">Smart Calendar</div><div class="feat-desc">Visual monthly calendar with habit completion heatmap, goal deadline markers, note indicators, and full day planner for future dates.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📓</div><div class="feat-title">Daily Journal + Mood</div><div class="feat-desc">Daily journaling with 5-level mood tracking. Mood charts in weekly and monthly reviews. See how your mood correlates with habits.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📋</div><div class="feat-title">Habit Templates</div><div class="feat-desc">12 pre-built habit templates — Drink Water, Morning Run, Read 20 Pages, Meditate, 10K Steps and more. Add in one tap with goals preset.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🌙</div><div class="feat-title">7 Premium Themes</div><div class="feat-desc">Obsidian, Ivory, Cyber (Free) · Rose, Midnight (Pro) · Aurora, Neon (Plus). Every theme fully redesigns the entire app experience.</div><span class="feat-tag tag-plus">PRO+</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🔔</div><div class="feat-title">Smart Notifications</div><div class="feat-desc">Set custom reminders with 8 distinct sounds. Works as PWA background notifications on Android.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">🛡️</div><div class="feat-title">Streak Freeze</div><div class="feat-desc">Miss a day? Use your monthly Streak Freeze to protect your streak and keep your momentum going.</div><span class="feat-tag tag-plus">PLUS</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">📤</div><div class="feat-title">Data Export</div><div class="feat-desc">Export your habits, goals and journal as CSV or beautiful formatted PDF report. Download and analyze your data anytime.</div><span class="feat-tag tag-pro">PRO+</span></div>
+      <div class="feat-card fade-up"><div class="feat-icon">☁️</div><div class="feat-title">Cloud Sync</div><div class="feat-desc">Your data syncs instantly across all your devices via Firebase. Phone, laptop, or tablet — always up to date.</div><span class="feat-tag tag-free">FREE</span></div>
+      <div class="feat-card ai-center fade-up" style="border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.04);"><div class="feat-icon">🤖</div><div class="feat-title">AI Coach</div><div class="feat-desc">Smart insights, AI goal planner, and personal chat powered by Claude AI. Reads your actual habit data for personalised coaching.</div><span class="feat-tag tag-plus">PLUS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BADGES -->
+<section class="section-wrap" style="padding-top:0;text-align:center;">
+  <div class="fade-up">
+    <div class="section-label">Gamification</div>
+    <h2 class="section-title">14 Streak Badges to Earn</h2>
+    <p class="section-sub" style="margin:0 auto 0;">Every milestone unlocks a badge. From your first 3-day streak to the legendary 360-day Year Champion.</p>
+    <button class="collapse-btn" id="badgeBtn" onclick="toggleSection('badgeContent','badgeBtn')">
+      <span>View All Badges</span> <span class="chevron">▼</span>
+    </button>
+  </div>
+  <div class="collapse-content" id="badgeContent">
+    <div class="badges-grid fade-up" style="margin-top:20px;">
+      <div class="badge-card" style="border-color:rgba(74,222,128,0.3);"><div class="badge-emoji">🌱</div><div class="badge-name">Starter</div><div class="badge-days">3 days</div></div>
+      <div class="badge-card" style="border-color:rgba(245,200,66,0.3);"><div class="badge-emoji">⚡</div><div class="badge-name">Week Warrior</div><div class="badge-days">7 days</div></div>
+      <div class="badge-card" style="border-color:rgba(232,133,61,0.3);"><div class="badge-emoji">🔥</div><div class="badge-name">Two-Week Titan</div><div class="badge-days">14 days</div></div>
+      <div class="badge-card" style="border-color:rgba(96,165,250,0.3);"><div class="badge-emoji">💪</div><div class="badge-name">Habit Former</div><div class="badge-days">21 days</div></div>
+      <div class="badge-card" style="border-color:rgba(167,139,250,0.3);"><div class="badge-emoji">🏆</div><div class="badge-name">Monthly Master</div><div class="badge-days">30 days</div></div>
+      <div class="badge-card" style="border-color:rgba(52,211,153,0.3);"><div class="badge-emoji">💎</div><div class="badge-name">Half-Century</div><div class="badge-days">50 days</div></div>
+      <div class="badge-card" style="border-color:rgba(244,114,182,0.3);"><div class="badge-emoji">🦾</div><div class="badge-name">75 Hard</div><div class="badge-days">75 days</div></div>
+      <div class="badge-card" style="border-color:rgba(245,200,66,0.4);"><div class="badge-emoji">👑</div><div class="badge-name">Centurion</div><div class="badge-days">100 days</div></div>
+      <div class="badge-card" style="border-color:rgba(56,189,248,0.3);"><div class="badge-emoji">🌟</div><div class="badge-name">150 Days</div><div class="badge-days">150 days</div></div>
+      <div class="badge-card" style="border-color:rgba(167,139,250,0.4);"><div class="badge-emoji">🔮</div><div class="badge-name">175 Legend</div><div class="badge-days">175 days</div></div>
+      <div class="badge-card" style="border-color:rgba(251,146,60,0.3);"><div class="badge-emoji">🛡️</div><div class="badge-name">200 Days</div><div class="badge-days">200 days</div></div>
+      <div class="badge-card" style="border-color:rgba(232,121,249,0.3);"><div class="badge-emoji">⚔️</div><div class="badge-name">250 Master</div><div class="badge-days">250 days</div></div>
+      <div class="badge-card" style="border-color:rgba(250,204,21,0.3);"><div class="badge-emoji">🌕</div><div class="badge-name">300 Elite</div><div class="badge-days">300 days</div></div>
+      <div class="badge-card" style="border-color:rgba(245,200,66,0.5);background:rgba(245,200,66,0.04);grid-column:2;"><div class="badge-emoji">🏅</div><div class="badge-name" style="color:var(--accent);">Year Champion 🎁</div><div class="badge-days" style="color:var(--accent);">360 days</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI COACH -->
+<section class="section-wrap" id="ai-coach">
+  <div class="fade-up" style="text-align:center;margin-bottom:20px;">
+    <div class="section-label">Powered by Claude AI</div>
+    <h2 class="section-title">🤖 Meet Your AI Coach</h2>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:6px 16px;margin-bottom:12px;">
+      <span style="font-size:12px;font-weight:700;color:var(--purple);">💎 Exclusive to Plus — Not available on Free or Pro</span>
+    </div>
+    <p class="section-sub" style="margin:0 auto;">Not a generic chatbot. Your AI Coach reads your real habit data, goal progress and journal mood — then gives you insights that are specific to you. Only available on the Plus plan.</p>
+    <button class="collapse-btn" id="aiBtn" onclick="toggleSection('aiContent','aiBtn')">
+      <span>Explore AI Coach</span> <span class="chevron">▼</span>
+    </button>
+  </div>
+  <div class="collapse-content" id="aiContent">
+    <div class="ai-layout fade-up">
+      <div>
+        <div class="ai-features">
+          <div class="ai-feat-card"><div class="ai-feat-title">💡 Smart Insights</div><div class="ai-feat-desc">AI reads your actual habit and mood data and surfaces patterns you'd never notice on your own — like which day you consistently skip, or how your mood correlates to habit completion. Refreshes every 6 hours automatically.</div></div>
+          <div class="ai-feat-card"><div class="ai-feat-title">📋 AI Goal Planner</div><div class="ai-feat-desc">Type a goal like "Learn Python in 60 days". AI builds a complete action plan with milestones and due dates — one tap adds the entire plan to your Goals section.</div></div>
+          <div class="ai-feat-card"><div class="ai-feat-title">💬 Personal Chat</div><div class="ai-feat-desc">Ask anything about your habits, goals or focus. The AI already knows your data so answers feel personal, not generic. Choose your coaching tone: Gentle, Direct, or Strict.<br/><span style="color:var(--purple);font-weight:700;font-size:10px;margin-top:6px;display:block;">⭐ Tap the star to save any chat to your history</span></div></div>
+        </div>
+        <div class="ai-credits-box">
+          <div style="font-size:22px;">🔋</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;">50 Credits / Month — Plus Only</div>
+            <div style="font-size:11px;color:var(--muted);">~1–2 AI interactions per day. Credits reset monthly. Cost shown before each action. Not available on Free or Pro tiers.</div>
+          </div>
+        </div>
+      </div>
+      <div class="ai-chat-demo" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;gap:4px;">
+            <span style="background:var(--purple);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;">💡 Insights</span>
+            <span style="background:rgba(255,255,255,0.04);color:var(--muted);font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;">📋 Planner</span>
+            <span style="background:rgba(255,255,255,0.04);color:var(--muted);font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;">💬 Chat</span>
+          </div>
+          <span style="font-size:10px;color:var(--purple);background:rgba(167,139,250,0.1);padding:3px 8px;border-radius:8px;font-weight:700;">🔋 42/50</span>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px 12px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.15);border-radius:10px;">
+          <div style="font-size:18px;flex-shrink:0;">📉</div>
+          <div><div style="font-size:9px;color:var(--purple);font-weight:700;text-transform:uppercase;margin-bottom:3px;">Pattern Detected</div><div style="font-size:11px;color:var(--text);line-height:1.55;">You skip your Workout habit on <strong>Mondays</strong> 4 out of the last 5 weeks. Consider moving it to Tuesday.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px 12px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.15);border-radius:10px;">
+          <div style="font-size:18px;flex-shrink:0;">😊</div>
+          <div><div style="font-size:9px;color:var(--purple);font-weight:700;text-transform:uppercase;margin-bottom:3px;">Mood Insight</div><div style="font-size:11px;color:var(--text);line-height:1.55;">On days you complete 3+ habits, your mood score is <strong>4.2/5</strong> vs 2.8 on incomplete days.</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:var(--green);font-size:11px;font-weight:700;">
+          <span>✅</span><span>Add 60-Day Python Plan to Goals →</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;background:rgba(245,200,66,0.05);border:1px dashed rgba(245,200,66,0.2);">
+          <span style="font-size:13px;">⭐</span>
+          <span style="font-size:10px;color:var(--muted);">Press star to save this chat to history</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section-wrap" style="max-width:700px;padding-top:0;">
+  <div class="fade-up">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">From zero to unstoppable<br/>in 4 steps</h2>
+    <button class="collapse-btn" id="stepsBtn" onclick="toggleSection('stepsContent','stepsBtn')">
+      <span>Show How It Works</span> <span class="chevron">▼</span>
+    </button>
+  </div>
+  <div class="collapse-content" id="stepsContent">
+    <div class="steps fade-up" style="margin-top:20px;">
+      <div class="step"><div class="step-num">1</div><div><div class="step-title">Sign in with Google</div><div class="step-desc">One tap to create your account. No email, no password, no friction. Your data syncs to cloud instantly and stays private.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div><div class="step-title">Add your first habits</div><div class="step-desc">Choose from 12 ready-made templates or create your own. Set daily goals, reminders, and categories. Takes under 60 seconds.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div><div class="step-title">Set your goals with action plans</div><div class="step-desc">Create goals with priority, deadlines and step-by-step actions. Or let AI build a 60-day plan for you. Track progress every day.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div><div class="step-title">Watch your streaks grow</div><div class="step-desc">Check your analytics, earn streak badges, review your week, and let the momentum compound. Most users see habit consistency improve in the first 7 days.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="section-wrap" style="padding-top:0;text-align:center;">
+  <div class="fade-up">
+    <div class="section-label">Works Everywhere</div>
+    <h2 class="section-title">Install it like an app</h2>
+    <p class="section-sub" style="margin:0 auto 0;">Momentum is a PWA — no App Store needed. Install directly from Chrome for a native app experience.</p>
+    <button class="collapse-btn" id="installBtn" onclick="toggleSection('installContent','installBtn')">
+      <span>View Install Guide</span> <span class="chevron">▼</span>
+    </button>
+  </div>
+  <div class="collapse-content" id="installContent">
+    <div class="install-grid fade-up">
+      <div class="install-card"><div class="install-icon">🤖</div><div class="install-title">Android (Best Experience)</div><div class="install-steps"><div class="install-step"><div class="step-badge">1</div><div class="step-text">Open <strong>Chrome</strong> and visit momentum-tracker-v01.vercel.app</div></div><div class="install-step"><div class="step-badge">2</div><div class="step-text">Tap the <strong>⋮ menu</strong> (top right)</div></div><div class="install-step"><div class="step-badge">3</div><div class="step-text">Tap <strong>"Add to Home Screen"</strong></div></div><div class="install-step"><div class="step-badge">4</div><div class="step-text">Opens like a native app with background notifications!</div></div></div></div>
+      <div class="install-card"><div class="install-icon">🍎</div><div class="install-title">iPhone / iPad</div><div class="install-steps"><div class="install-step"><div class="step-badge">1</div><div class="step-text">Open <strong>Safari</strong> (must be Safari, not Chrome)</div></div><div class="install-step"><div class="step-badge">2</div><div class="step-text">Tap the <strong>Share button</strong> at the bottom</div></div><div class="install-step"><div class="step-badge">3</div><div class="step-text">Tap <strong>"Add to Home Screen"</strong></div></div><div class="install-step"><div class="step-badge">4</div><div class="step-text">Works great — note: iOS has limited background notifications</div></div></div></div>
+      <div class="install-card"><div class="install-icon">💻</div><div class="install-title">Desktop / Laptop</div><div class="install-steps"><div class="install-step"><div class="step-badge">1</div><div class="step-text">Open <strong>Chrome</strong> on your computer</div></div><div class="install-step"><div class="step-badge">2</div><div class="step-text">Click the <strong>install icon</strong> in address bar (or ⋮ menu)</div></div><div class="install-step"><div class="step-badge">3</div><div class="step-text">Click <strong>"Install"</strong> — opens as standalone window</div></div><div class="install-step"><div class="step-badge">4</div><div class="step-text">Same data as your phone — always synced!</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section-wrap" id="pricing" style="text-align:center;">
+  <div class="fade-up">
+    <div class="section-label">Simple Pricing</div>
+    <h2 class="section-title">Start free.<br/>Upgrade when you're ready.</h2>
+    <p class="section-sub" style="margin:0 auto;">No hidden fees. No credit card to start. Cancel anytime.</p>
+  </div>
+  <div class="pricing-cards">
+    <!-- FREE -->
+    <div class="price-card fade-up">
+      <div class="price-name">Free</div>
+      <div class="price-amount">₹0<span>/month</span></div>
+      <div class="price-period">Free forever — no credit card</div>
+      <div style="height:22px;"></div>
+      <div class="price-features">
+        <div class="price-feat">✅ 7 habits maximum</div>
+        <div class="price-feat">✅ 3 goals maximum</div>
+        <div class="price-feat">✅ 2 custom reminders</div>
+        <div class="price-feat">✅ 7-day journal history</div>
+        <div class="price-feat">✅ Calendar + Pomodoro</div>
+        <div class="price-feat">✅ 12 habit templates</div>
+        <div class="price-feat">✅ Day + Week analytics</div>
+        <div class="price-feat">✅ Cloud sync</div>
+        <div class="price-feat">✅ Referral rewards</div>
+        <div class="price-feat">✅ 3 themes (Obsidian, Ivory, Cyber)</div>
+        <div class="price-feat locked">🔒 90-day heatmaps</div>
+        <div class="price-feat locked">🔒 Month + Year analytics 💎</div>
+        <div class="price-feat locked">🔒 AI Coach (Plus only)</div>
+      </div>
+      <a href="https://momentum-tracker-v01.vercel.app" class="btn-free" target="_blank">Get Started Free</a>
+    </div>
+    <!-- PRO -->
+    <div class="price-card popular fade-up">
+      <div class="popular-badge">Most Popular</div>
+      <div class="price-name">Pro</div>
+      <div class="price-amount">₹79<span>/month</span></div>
+      <div class="price-period">Billed monthly</div>
+      <div class="price-save save-green">or ₹699/year — save ₹249 🎉</div>
+      <div class="price-features">
+        <div class="price-feat">⚡ Unlimited habits & goals</div>
+        <div class="price-feat">⚡ Unlimited reminders & journal</div>
+        <div class="price-feat">⚡ 90-day heatmaps</div>
+        <div class="price-feat">⚡ All 14 streak badges</div>
+        <div class="price-feat">⚡ Rose &amp; Midnight themes (+2 Pro themes)</div>
+        <div class="price-feat">⚡ Day + Week + <strong>Month analytics</strong></div>
+        <div class="price-feat">⚡ Monthly Pomodoro analytics</div>
+        <div class="price-feat">⚡ CSV data export</div>
+        <div class="price-feat">✅ Everything in Free</div>
+        <div class="price-feat locked">🔒 Year analytics 💎 (Plus only)</div>
+        <div class="price-feat locked">🔒 AI Coach 💎 (Plus only)</div>
+      </div>
+      <a href="https://rzp.io/rzp/tWSHGLyo" class="btn-pro" target="_blank">Get Pro — ₹79/month ⚡</a>
+      <a href="https://rzp.io/rzp/oQa0SwW" class="btn-pro-annual" target="_blank">₹699/year — Save ₹249 🎉</a>
+    </div>
+    <!-- PLUS -->
+    <div class="price-card plus-card fade-up">
+      <div class="plus-badge-tag">Best Value</div>
+      <div class="price-name">Plus</div>
+      <div class="price-amount">₹149<span>/month</span></div>
+      <div class="price-period">Billed monthly</div>
+      <div class="price-save save-purple">or ₹1499/year — save ₹289 🎉</div>
+      <div class="price-features">
+        <div class="price-feat">💎 Aurora &amp; Neon themes (+2 Plus themes)</div>
+        <div class="price-feat">💎 <strong>AI Coach — 50 credits/month</strong></div>
+        <div class="price-feat">💎 Smart AI Insights (data-driven)</div>
+        <div class="price-feat">💎 AI Goal Planner (60-day plans)</div>
+        <div class="price-feat">💎 Personal AI Chat + ⭐ Save to history</div>
+        <div class="price-feat">💎 <strong>Year Review + Yearly analytics</strong></div>
+        <div class="price-feat">💎 Yearly Pomodoro analytics</div>
+        <div class="price-feat">💎 Quarterly summary</div>
+        <div class="price-feat">💎 PDF export (formatted reports)</div>
+        <div class="price-feat">💎 Streak Freeze (1×/month)</div>
+        <div class="price-feat">💎 Drive backup</div>
+        <div class="price-feat">✅ Everything in Pro</div>
+      </div>
+      <a href="https://rzp.io/rzp/MnqSxN6P" class="btn-plus" target="_blank">Get Plus — ₹149/month 💎</a>
+      <a href="https://rzp.io/rzp/XqA9tQJ" class="btn-plus-annual" target="_blank">₹1499/year — Save ₹289 🎉</a>
+    </div>
+  </div>
+  <div class="compare-note fade-up">
+    <span class="hl">🔥 7-Day Streak Challenge</span> — Build a 7-day habit streak and submit your screenshot to earn <strong>14 days Pro free</strong>. The perfect way to experience Pro at its best.<br/>
+    <span class="hl-ref">👥 Refer &amp; Earn</span> — Share your referral link. Every friend who joins gives you both <strong>7 days Pro free</strong>. Reach milestones for bigger rewards — up to <strong>3 months Pro free</strong> at 10 referrals.
+  </div>
+</section>
+
+<!-- REFERRAL -->
+<section class="section-wrap" id="challenge" style="text-align:center;padding-top:0;">
+  <div class="referral-box fade-up">
+    <div style="font-size:34px;margin-bottom:10px;">🎁</div>
+    <h3 style="font-size:20px;font-weight:800;margin-bottom:7px;">Refer Friends. Earn Free Pro.</h3>
+    <p style="font-size:12px;color:var(--muted);max-width:380px;margin:0 auto 16px;line-height:1.7;">Share your unique referral link. Every friend who signs up gives you both Pro days free. Hit milestones for bigger rewards.</p>
+    <div class="referral-tiers">
+      <div class="referral-tier"><div class="referral-tier-num">1</div><div class="referral-tier-lbl">referral<br/>7 days Pro</div></div>
+      <div class="referral-tier"><div class="referral-tier-num">3</div><div class="referral-tier-lbl">referrals<br/>1 month Pro</div></div>
+      <div class="referral-tier"><div class="referral-tier-num">5</div><div class="referral-tier-lbl">referrals<br/>2 months Pro</div></div>
+      <div class="referral-tier"><div style="font-size:20px;font-weight:900;color:var(--accent);">10</div><div class="referral-tier-lbl">referrals<br/>3 months Pro 👑</div></div>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:14px;">Referral rewards are capped at 10 referrals. Referral link available inside the app → Settings → Refer &amp; Earn</p>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section-wrap" style="text-align:center;padding-top:0;">
+  <div class="fade-up">
+    <div class="section-label">Reviews</div>
+    <h2 class="section-title">What users say</h2>
+  </div>
+  <div class="reviews-grid fade-up">
+    <!-- Box 1 -->
+    <div class="review-box" onclick="openPopup('popup1')">
+      <div class="review-stars">★★★★★</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+        <div class="review-avatar" style="background:linear-gradient(135deg,#f5c842,#e8853d);">R</div>
+        <div style="text-align:left;"><div class="review-name">Rohit Kharat</div><div class="review-role">Professor, Pune</div></div>
+      </div>
+      <div class="review-tap-hint">Tap to read full review →</div>
+    </div>
+    <!-- Box 2 -->
+    <div class="review-box" onclick="openPopup('popup2')">
+      <div class="review-stars">★★★★★</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+        <div class="review-avatar" style="background:linear-gradient(135deg,#60a5fa,#a78bfa);">T</div>
+        <div style="text-align:left;"><div class="review-name">Tanushri Shiledar</div><div class="review-role">Pharmacist</div></div>
+      </div>
+      <div class="review-tap-hint">Tap to read full review →</div>
+    </div>
+    <!-- Box 3 -->
+    <div class="review-box" onclick="openPopup('popup3')">
+      <div class="review-stars">★★★★★</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+        <div class="review-avatar" style="background:linear-gradient(135deg,#4ade80,#34d399);">O</div>
+        <div style="text-align:left;"><div class="review-name">Omsai Katware</div><div class="review-role">Student</div></div>
+      </div>
+      <div class="review-tap-hint">Tap to read full review →</div>
+    </div>
+    <!-- Box 4 - View More -->
+    <div class="view-more-box" onclick="toggleFullReviews()">
+      <div style="font-size:24px;">⭐</div>
+      <div style="font-size:13px;font-weight:700;color:var(--accent);" id="viewMoreTxt">View More Reviews →</div>
+      <div style="font-size:10px;color:var(--muted);">5 total reviews</div>
+    </div>
+  </div>
+
+  <!-- Full reviews list -->
+  <div class="full-reviews" id="fullReviews">
+    <div class="social-card">
+      <div class="social-stars">★★★★★</div>
+      <div class="social-text">"Tracking my goals and activities has never been easier. The Goal System with action steps is exactly what I needed to stay organized and focused."</div>
+      <div class="social-author"><div class="social-avatar" style="background:linear-gradient(135deg,#f5c842,#e8853d);">R</div><div><div class="social-name">Rohit Kharat</div><div class="social-role">Professor, Pune</div></div></div>
+    </div>
+    <div class="social-card">
+      <div class="social-stars">★★★★★</div>
+      <div class="social-text">"Just started using Momentum and I'm already hooked. I opened it and figured everything out in minutes. Reminders are gentle and not annoying. Perfect for someone like me who's tried other habit apps and quit. Highly recommend for beginners!"</div>
+      <div class="social-author"><div class="social-avatar" style="background:linear-gradient(135deg,#60a5fa,#a78bfa);">T</div><div><div class="social-name">Tanushri Shiledar</div><div class="social-role">Pharmacist</div></div></div>
+    </div>
+    <div class="social-card">
+      <div class="social-stars">★★★★★</div>
+      <div class="social-text">"As a student it's hard to stay consistent with studies and personal goals. Momentum changed that. The streak system motivates me every single day and the AI coach helped me build a solid study plan in seconds. Genuinely impressed."</div>
+      <div class="social-author"><div class="social-avatar" style="background:linear-gradient(135deg,#4ade80,#34d399);">O</div><div><div class="social-name">Omsai Katware</div><div class="social-role">Student</div></div></div>
+    </div>
+    <div class="social-card">
+      <div class="social-stars">★★★★★</div>
+      <div class="social-text">"The dashboard gives me everything at a glance — streaks, goals, habits. I love how it works offline too. Been using it daily for 3 weeks now and haven't missed a single habit check-in."</div>
+      <div class="social-author"><div class="social-avatar" style="background:linear-gradient(135deg,#f87171,#fb923c);">A</div><div><div class="social-name">Aryan Desai</div><div class="social-role">Student, Nashik</div></div></div>
+    </div>
+    <div class="social-card">
+      <div class="social-stars">★★★★★</div>
+      <div class="social-text">"Super clean UI and easy to use. The journal + mood tracking combo is something I didn't know I needed. It's helped me understand my own patterns. Would recommend to anyone trying to build better habits."</div>
+      <div class="social-author"><div class="social-avatar" style="background:linear-gradient(135deg,#a78bfa,#818cf8);">S</div><div><div class="social-name">Sneha Patil</div><div class="social-role">Student, Pune</div></div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;" class="fade-up">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center;max-width:480px;margin:0 auto;">
+      <div style="font-size:20px;margin-bottom:6px;">⭐</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Using Momentum? Share your experience!</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Takes 2 minutes. Helps others discover the app.</div>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScQFfEw6Mca53_gpFzP6uUkqinlDBbhQNdHnoEd33em_AWl7w/viewform" target="_blank" style="display:inline-block;padding:10px 22px;border-radius:12px;background:var(--accent);color:#000;font-weight:700;font-size:13px;text-decoration:none;">⭐ Leave a Review</a>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section-wrap" style="text-align:center;">
+  <div class="cta-box fade-up">
+    <div style="font-size:48px;margin-bottom:12px;">⚡</div>
+    <h2 class="cta-title">Start Building<br/>Momentum Today</h2>
+    <p class="cta-sub">Free forever. Cloud synced. Works on all devices. No App Store needed. Start in 30 seconds.</p>
+    <div class="cta-btns">
+      <a href="https://momentum-tracker-v01.vercel.app" class="btn-primary" target="_blank">⚡ Start Free — No Card</a>
+      <a href="#pricing" class="btn-secondary">💎 See All Plans</a>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:16px;">Free forever · Cloud synced · Android PWA · No App Store needed</p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">⚡ Momentum</div>
+  <div class="footer-text">Built with ❤️ by a CE student from Pune, India</div>
+  <div class="footer-links">
+    <a href="https://momentum-tracker-v01.vercel.app" target="_blank">Open App</a>
+    <a href="https://rzp.io/rzp/tWSHGLyo" target="_blank">Get Pro ₹79/mo</a>
+    <a href="https://rzp.io/rzp/oQa0SwW" target="_blank">Pro Yearly ₹699</a>
+    <a href="https://rzp.io/rzp/MnqSxN6P" target="_blank">Get Plus ₹149/mo</a>
+    <a href="https://rzp.io/rzp/XqA9tQJ" target="_blank">Plus Yearly ₹1499</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLScQFfEw6Mca53_gpFzP6uUkqinlDBbhQNdHnoEd33em_AWl7w/viewform" target="_blank">Leave Review</a>
+    <a href="mailto:momentumtrackerappofficial@gmail.com">Contact</a>
+  </div>
+</footer>
+
+<!-- POPUPS -->
+<div class="popup-overlay" id="popup1" onclick="closePopupOutside(event,'popup1')">
+  <div class="popup-card">
+    <button class="popup-close" onclick="closePopup('popup1')">✕</button>
+    <div style="font-size:14px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">★★★★★</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8;font-style:italic;margin-bottom:16px;">"Tracking my goals and activities has never been easier. The Goal System with action steps is exactly what I needed to stay organized and focused. As a professor I have many tasks to juggle — Momentum keeps everything in one place."</p>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="review-avatar" style="background:linear-gradient(135deg,#f5c842,#e8853d);width:38px;height:38px;font-size:15px;">R</div>
+      <div><div style="font-size:13px;font-weight:700;">Rohit Kharat</div><div style="font-size:11px;color:var(--muted);">Professor, Pune</div></div>
+    </div>
+  </div>
+</div>
+<div class="popup-overlay" id="popup2" onclick="closePopupOutside(event,'popup2')">
+  <div class="popup-card">
+    <button class="popup-close" onclick="closePopup('popup2')">✕</button>
+    <div style="font-size:14px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">★★★★★</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8;font-style:italic;margin-bottom:16px;">"Just started using Momentum and I'm already hooked. I opened it and figured everything out in minutes. Reminders are gentle and not annoying. Perfect for someone like me who's tried other habit apps and quit. I've already started recommending this to people around me, especially friends who've struggled with consistency like I have. Highly recommend for beginners!"</p>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="review-avatar" style="background:linear-gradient(135deg,#60a5fa,#a78bfa);width:38px;height:38px;font-size:15px;">T</div>
+      <div><div style="font-size:13px;font-weight:700;">Tanushri Shiledar</div><div style="font-size:11px;color:var(--muted);">Pharmacist</div></div>
+    </div>
+  </div>
+</div>
+<div class="popup-overlay" id="popup3" onclick="closePopupOutside(event,'popup3')">
+  <div class="popup-card">
+    <button class="popup-close" onclick="closePopup('popup3')">✕</button>
+    <div style="font-size:14px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">★★★★★</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8;font-style:italic;margin-bottom:16px;">"As a student it's hard to stay consistent with studies and personal goals. Momentum changed that. The streak system motivates me every single day and the AI coach helped me build a solid study plan in seconds. The UI is clean, the app is fast, and I genuinely look forward to checking in every morning. Genuinely impressed."</p>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="review-avatar" style="background:linear-gradient(135deg,#4ade80,#34d399);width:38px;height:38px;font-size:15px;">O</div>
+      <div><div style="font-size:13px;font-weight:700;">Omsai Katware</div><div style="font-size:11px;color:var(--muted);">Student</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Fade-in on scroll — only animate if IntersectionObserver supported and page is on HTTP
+const fadeEls=document.querySelectorAll('.fade-up');
+if('IntersectionObserver' in window && location.protocol.startsWith('http')){
+  fadeEls.forEach(el=>el.classList.add('animate'));
+  const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.07});
+  fadeEls.forEach(el=>observer.observe(el));
+}
+
+// Collapse/expand
+function toggleSection(contentId,btnId){
+  const content=document.getElementById(contentId);
+  const btn=document.getElementById(btnId);
+  const isOpen=content.classList.contains('open');
+  content.classList.toggle('open');
+  btn.classList.toggle('open-state');
+  const chevron=btn.querySelector('.chevron');
+  if(chevron)chevron.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+}
+
+// Review popups
+function openPopup(id){document.getElementById(id).classList.add('show');}
+function closePopup(id){document.getElementById(id).classList.remove('show');}
+function closePopupOutside(e,id){if(e.target===document.getElementById(id))closePopup(id);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.popup-overlay.show').forEach(p=>p.classList.remove('show'));});
+
+// Share panel
+function openSharePanel(){
+  const p=document.getElementById('sharePanel');
+  p.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeSharePanel(e){
+  if(e.target===document.getElementById('sharePanel'))closeSharePanelDirect();
+}
+function closeSharePanelDirect(){
+  document.getElementById('sharePanel').style.display='none';
+  document.body.style.overflow='';
+}
+function copyLandingLink(){
+  navigator.clipboard.writeText('https://momentum-tracker-v01.vercel.app').then(()=>{
+    const btn=document.getElementById('copyLandingBtn');
+    btn.textContent='Copied!';
+    btn.style.background='#4ade80';
+    setTimeout(()=>{btn.textContent='Copy';btn.style.background='var(--accent)';},2000);
+  }).catch(()=>{
+    // Fallback for browsers that block clipboard
+    const ta=document.createElement('textarea');
+    ta.value='https://momentum-tracker-v01.vercel.app';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn=document.getElementById('copyLandingBtn');
+    btn.textContent='Copied!';
+    btn.style.background='#4ade80';
+    setTimeout(()=>{btn.textContent='Copy';btn.style.background='var(--accent)';},2000);
+  });
+}
+function nativeShare(){
+  if(navigator.share){
+    navigator.share({title:'Momentum — Habit Tracker',text:'Check out Momentum — the habit tracker that actually works! Free to start ⚡',url:'https://momentum-tracker-v01.vercel.app'});
+  } else {
+    copyLandingLink();
+  }
+}
+
+// Full reviews toggle
+function toggleFullReviews(){
+  const el=document.getElementById('fullReviews');
+  const txt=document.getElementById('viewMoreTxt');
+  const isShown=el.classList.contains('show');
+  el.classList.toggle('show');
+  txt.textContent=isShown?'View More Reviews →':'Show Less ▲';
+}
+</script>
+</body>
+</html>
