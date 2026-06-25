@@ -13,8 +13,8 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ── In-memory rate limiter (resets on cold start, good enough for serverless) ─
-const rateLimitMap = new Map(); // uid → { count, windowStart }
+// ── In-memory rate limiter ────────────────────────────────────────────────────
+const rateLimitMap = new Map();
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60 * 1000;
 
@@ -35,10 +35,10 @@ function isRateLimited(uid) {
 function sanitizeText(text) {
   if (typeof text !== 'string') return '';
   return text
-    .replace(/<\|.*?\|>/g, '')           // remove <|special tokens|>
-    .replace(/\[INST\]|\[\/INST\]/gi, '') // remove instruction tags
-    .replace(/###\s*(system|instruction|prompt)/gi, '') // remove prompt headers
-    .slice(0, 4000);                      // hard cap
+    .replace(/<\|.*?\|>/g, '')
+    .replace(/\[INST\]|\[\/INST\]/gi, '')
+    .replace(/###\s*(system|instruction|prompt)/gi, '')
+    .slice(0, 4000);
 }
 
 function sanitizeMessages(messages) {
@@ -88,6 +88,7 @@ export default async function handler(req, res) {
 
   // ── S3: Atomic credit deduction ───────────────────────────────────────────
   const cost = parseInt(req.body.creditCost) || 1;
+  const usageType = req.body.usageType || 'ai_call';
   const userRef = db.collection('users').doc(uid);
 
   try {
@@ -104,12 +105,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Credit deduction failed' });
   }
 
-  // ── S5: Sanitize prompt before sending to Anthropic ──────────────────────
+  // ── S5: Sanitize prompt ───────────────────────────────────────────────────
   const body = { ...req.body };
   if (body.messages) body.messages = sanitizeMessages(body.messages);
-  delete body.creditCost; // don't forward this field to Anthropic
+  delete body.creditCost;
+  delete body.usageType;
 
   // ── Forward to Anthropic ──────────────────────────────────────────────────
+  let anthropicOk = false;
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -121,6 +124,25 @@ export default async function handler(req, res) {
       body: JSON.stringify(body),
     });
     const data = await response.json();
+    anthropicOk = response.ok;
+
+    // ── Usage log (only on success, capped at 30 entries) ─────────────────
+    if (anthropicOk) {
+      try {
+        const snap = await userRef.get();
+        const existing = snap.data()?.aiUsageLog || [];
+        const entry = {
+          ts: new Date().toISOString(),
+          type: usageType,
+          cost,
+        };
+        const updated = [...existing, entry].slice(-10); // cap at 10
+        await userRef.update({ aiUsageLog: updated });
+      } catch (logErr) {
+        console.warn('Usage log write failed (non-fatal):', logErr.message);
+      }
+    }
+
     res.status(response.status).json(data);
   } catch (e) {
     res.status(500).json({ error: 'Proxy error', detail: e.message });
