@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 
-const WEBHOOK_SECRET   = "Polo1716@153";
+const WEBHOOK_SECRET   = process.env.RAZORPAY_WEBHOOK_SECRET;
 const FIREBASE_PROJECT = "momentum-trackerapp";
 
 module.exports = async function handler(req, res) {
@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
     const signature = req.headers["x-razorpay-signature"];
 
     const expected = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
-    if (expected !== signature) {
+    if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature || ''))) {
       console.error("❌ Invalid signature");
       return res.status(400).json({ error: "Invalid signature" });
     }
@@ -21,16 +21,14 @@ module.exports = async function handler(req, res) {
     if (event.event !== "payment.captured") return res.status(200).json({ message: "Ignored: " + event.event });
 
     const payment = event.payload.payment.entity;
-    const amount  = payment.amount; // paise
+    const amount  = payment.amount;
     const notes   = payment.notes  || {};
 
-    // Payment Pages send email in notes (set by payLink function in app)
     const emailFromNotes   = (notes.email   || "").toLowerCase().trim();
     const emailFromPayment = (payment.email || "").toLowerCase().trim();
     const uid   = (notes.uid   || "").trim();
     const planNote = (notes.plan || "").toLowerCase().trim();
 
-    // Use notes email first (most reliable — set by app), fallback to payment email
     const email = (emailFromNotes && emailFromNotes !== "void@razorpay.com")
       ? emailFromNotes
       : emailFromPayment;
@@ -42,7 +40,6 @@ module.exports = async function handler(req, res) {
 
     const token = await getFirebaseToken();
 
-    // Find user — try UID first (fastest), then email
     let userUID = null;
 
     if (uid && uid.length > 4) {
@@ -72,9 +69,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// ── PLAN DETECTION ─────────────────────────────────────────────
 function detectPlan(planNote, amount) {
-  // Priority 1: plan name from notes (set by app payLink function)
   const MAP = {
     "pro_monthly":  { plan:"pro",  days:31  },
     "pro_yearly":   { plan:"pro",  days:366 },
@@ -83,17 +78,15 @@ function detectPlan(planNote, amount) {
   };
   if (MAP[planNote]) return MAP[planNote];
 
-  // Priority 2: exact amount in paise
-  if (amount === 7900)   return { plan:"pro",  days:31  }; // ₹79
-  if (amount === 69900)  return { plan:"pro",  days:366 }; // ₹699
-  if (amount === 14900)  return { plan:"plus", days:31  }; // ₹149
-  if (amount === 149900) return { plan:"plus", days:366 }; // ₹1499
+  if (amount === 7900)   return { plan:"pro",  days:31  };
+  if (amount === 69900)  return { plan:"pro",  days:366 };
+  if (amount === 14900)  return { plan:"plus", days:31  };
+  if (amount === 149900) return { plan:"plus", days:366 };
 
   console.log("⚠️ Unknown plan/amount — defaulting to Pro monthly");
   return { plan:"pro", days:31 };
 }
 
-// ── FIREBASE TOKEN ─────────────────────────────────────────────
 async function getFirebaseToken() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey  = (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
@@ -124,7 +117,6 @@ async function getFirebaseToken() {
   return data.access_token;
 }
 
-// ── FIRESTORE HELPERS ──────────────────────────────────────────
 async function getUserByUID(token, uid) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/users/${uid}`;
   const resp = await fetch(url, { headers: { Authorization: "Bearer " + token } });
@@ -191,7 +183,6 @@ async function logFailedPayment(token, email, uid, plan, days, amount) {
   });
 }
 
-// ── RAW BODY ───────────────────────────────────────────────────
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -199,4 +190,4 @@ function getRawBody(req) {
     req.on("end",  () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
-                                 }
+}
